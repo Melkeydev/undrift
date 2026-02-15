@@ -2,7 +2,7 @@
 
 ## Overview
 
-The dashboard is a web application where users view their Focus Guard analytics, track progress over time, and configure their experience. The extension syncs data to the server, and the dashboard reads from the server API.
+The dashboard is a web application where users view their Undrift analytics, track progress over time, and configure their experience. The extension syncs data to the server, and the dashboard reads from the server API.
 
 ---
 

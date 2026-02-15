@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["node"],
+    "types": ["node", "chrome"],
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,

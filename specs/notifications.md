@@ -2,7 +2,7 @@
 
 ## Overview
 
-Focus Guard uses Chrome's `chrome.notifications` API to send OS-level notifications from the background service worker. Notifications serve as nudges, warnings, and motivational prompts — they work even when the extension popup is closed.
+Undrift uses Chrome's `chrome.notifications` API to send OS-level notifications from the background service worker. Notifications serve as nudges, warnings, and motivational prompts — they work even when the extension popup is closed.
 
 ---
 

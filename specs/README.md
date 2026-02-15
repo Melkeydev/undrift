@@ -1,6 +1,6 @@
-# Focus Guard — Specs
+# Undrift — Specs
 
-> Technical specification for Focus Guard, a Chrome extension that helps users quit distracting websites through blocking, time tracking, behavioral interventions, and a personal analytics dashboard.
+> Technical specification for Undrift, a Chrome extension that helps users quit distracting websites through blocking, time tracking, behavioral interventions, and a personal analytics dashboard.
 
 ---
 
@@ -31,11 +31,11 @@
 
 ## Quick Reference
 
-### What is Focus Guard?
+### What is Undrift?
 
 A Chrome extension + web platform that helps users quit distracting websites. Users select sites to block and set focus sessions. When they try to visit a blocked site, they see an intervention page with QUITTR-inspired behavioral tools (motivational messaging, urge management, breathing exercises). The extension tracks time spent on sites, maintains quit streaks, counts interruption attempts, and syncs everything to a personal analytics dashboard on the web platform.
 
-**Inspired by QUITTR's approach:** Blocking alone is insufficient. Focus Guard layers multiple intervention techniques — blocking prevents access, the intervention page manages urges in the moment, and the dashboard provides long-term progress visibility and motivation.
+**Inspired by QUITTR's approach:** Blocking alone is insufficient. Undrift layers multiple intervention techniques — blocking prevents access, the intervention page manages urges in the moment, and the dashboard provides long-term progress visibility and motivation.
 
 ### Core Features
 

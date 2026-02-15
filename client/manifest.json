@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Focus Guard",
+  "name": "Undrift",
   "version": "2.0.3",
   "description": "Quit distracting websites with blocking, interventions, time tracking, and streaks.",
 
@@ -24,7 +24,7 @@
 
   "action": {
     "default_popup": "src/popup/index.html",
-    "default_title": "Focus Guard"
+    "default_title": "Undrift"
   },
 
   "web_accessible_resources": [

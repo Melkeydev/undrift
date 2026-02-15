@@ -41,7 +41,7 @@
 
 Chrome MV3 service workers are **ephemeral** — they can be suspended after ~30 seconds of inactivity.
 
-### How Focus Guard Handles This
+### How Undrift Handles This
 
 1. **State Persistence:** All state is stored in `chrome.storage.local`, never in-memory global variables. The service worker reads from storage on every event.
 

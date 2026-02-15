@@ -2,7 +2,7 @@
 
 ## Threat Model
 
-Focus Guard processes real payments. The primary assets to protect are:
+Undrift processes real payments. The primary assets to protect are:
 1. **Payment integrity** — users should only be charged when they consent, and blocks should only break after real payment
 2. **User data** — payment history and spending data
 3. **Stripe credentials** — API keys and webhook secrets
@@ -53,7 +53,7 @@ The webhook handler checks if `STRIPE_WEBHOOK_SECRET` is set. If empty, it falls
 
 ### SEC-02: Unrestricted CORS
 
-`Access-Control-Allow-Origin: *` means any website can call the Focus Guard API from client-side JavaScript.
+`Access-Control-Allow-Origin: *` means any website can call the Undrift API from client-side JavaScript.
 
 **Attack:** A malicious page loads in a tab, calls `/create-checkout-session` with a stolen/guessed UUID, or reads `/user-stats` data.
 
@@ -94,7 +94,7 @@ All endpoints accept unlimited requests.
 The Stripe secret key is loaded from environment variables. It is not exposed to the client (the client only sees the checkout URL, not the key).
 
 ### PCI Compliance
-Stripe Checkout is used (hosted payment page). No card data touches the Focus Guard server, so PCI DSS scope is minimal (SAQ A).
+Stripe Checkout is used (hosted payment page). No card data touches the Undrift server, so PCI DSS scope is minimal (SAQ A).
 
 ### Webhook Security
 When properly configured with `STRIPE_WEBHOOK_SECRET`, Stripe webhooks are verified using HMAC-SHA256 signatures. The current implementation makes this optional, which is the vulnerability.

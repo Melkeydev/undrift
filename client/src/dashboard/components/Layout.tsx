@@ -53,7 +53,7 @@ export default function Layout() {
           ))}
         </nav>
         <div className="px-6 pt-4 pb-5 border-t border-border-subtle text-[11px] text-text-muted tracking-widest uppercase">
-          Focus Guard v2.0
+          Undrift v2.0
         </div>
       </aside>
 

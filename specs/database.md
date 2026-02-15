@@ -2,7 +2,7 @@
 
 ## Overview
 
-Focus Guard v2 replaces the single-table DynamoDB payment schema with a multi-table schema for user accounts, time tracking, session history, and streaks. The previous `FocusGuardPayments` table is deprecated.
+Undrift v2 replaces the single-table DynamoDB payment schema with a multi-table schema for user accounts, time tracking, session history, and streaks. The previous `UndriftPayments` table is deprecated.
 
 ---
 
@@ -210,7 +210,7 @@ The Chrome extension uses local storage as the primary data store. Server sync i
 
 ### What to Remove
 
-- `FocusGuardPayments` DynamoDB table — no longer needed
+- `UndriftPayments` DynamoDB table — no longer needed
 - `Payment` struct in Go server
 - All payment-related DynamoDB operations (`savePayment`, `markPaymentPaid`, `checkPaymentPaid`, `getPaymentsByUser`)
 

@@ -213,7 +213,7 @@ export function Popup() {
       <div className="popup">
         <div className="header">
           <span className="header-icon">&#x1F6E1;</span>
-          <h1>Focus Guard</h1>
+          <h1>Undrift</h1>
           {headerBadges}
         </div>
 
@@ -274,7 +274,7 @@ export function Popup() {
     <div className="popup">
       <div className="header">
         <span className="header-icon">&#x1F6E1;</span>
-        <h1>Focus Guard</h1>
+        <h1>Undrift</h1>
         {headerBadges}
       </div>
 

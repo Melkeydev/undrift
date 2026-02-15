@@ -2,7 +2,7 @@
 
 ## Overview
 
-Focus Guard's gamification system reinforces positive behavior through achievements, progression, and visual rewards. The goal is not to make focusing "fun" in a game-like way, but to leverage loss aversion, milestone psychology, and visible progress to make distraction avoidance self-reinforcing.
+Undrift's gamification system reinforces positive behavior through achievements, progression, and visual rewards. The goal is not to make focusing "fun" in a game-like way, but to leverage loss aversion, milestone psychology, and visible progress to make distraction avoidance self-reinforcing.
 
 **Design philosophy:** Gamification should feel earned, not gimmicky. Every element ties directly to real behavioral data — no artificial point inflation or meaningless badges.
 

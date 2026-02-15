@@ -6,13 +6,16 @@ Items:
 - [x] Clean up commits
 - [x] Clean up vibe coded slop
 - [x] Clean up comments
-- [] Create a new name
+- [x] Create a new name
 - [] Open source it
 - [] Modify Focus Duration
+- [x] Create ReadME + Licnese
 - [x] Introduce "points" system
 - [x] Introduce gamification and rewards
 - [x] Sites like Youtube.com/hash should only count YouTube
 - [x] Optimize the code
+- [] Publish to Chrome Extensions
+- [] Re-analyze background worker chrome memory comsumption
 
 Bugs:
 

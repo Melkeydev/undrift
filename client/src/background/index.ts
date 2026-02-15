@@ -374,7 +374,7 @@ interface GamificationResult {
 async function processGamificationEvent(
   counterEvent: CounterEvent,
   xpActions: { source: Parameters<typeof awardXP>[1]; amount: number; description: string }[],
-  checkCtx?: Parameters<typeof checkAchievements>[2],
+  checkCtx?: Parameters<typeof checkAchievements>[1],
 ): Promise<GamificationResult> {
   let data = await getGamificationData();
   const session = await getSession();

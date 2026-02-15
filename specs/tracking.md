@@ -2,7 +2,7 @@
 
 ## Overview
 
-Focus Guard tracks two categories of user behavior:
+Undrift tracks two categories of user behavior:
 
 1. **Passive time tracking** — How long users spend on specific websites (runs continuously, not just during focus sessions)
 2. **Active session tracking** — Focus session history, interruption attempts, and streak data

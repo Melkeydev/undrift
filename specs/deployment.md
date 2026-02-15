@@ -31,7 +31,7 @@ There is no deployment infrastructure. No Dockerfiles, CI/CD pipelines, or infra
 |----------|----------|-------|
 | `STRIPE_SECRET_KEY` | Yes | `sk_test_...` (test) or `sk_live_...` (prod) |
 | `STRIPE_WEBHOOK_SECRET` | Yes | `whsec_...` from Stripe Dashboard |
-| `DYNAMODB_TABLE` | No | Defaults to `FocusGuardPayments` |
+| `DYNAMODB_TABLE` | No | Defaults to `UndriftPayments` |
 | `SUCCESS_URL` | Yes | Must be set to a real URL |
 | `CANCEL_URL` | Yes | Must be set to a real URL |
 | `PORT` | No | Defaults to `8080` |
@@ -40,7 +40,7 @@ There is no deployment infrastructure. No Dockerfiles, CI/CD pipelines, or infra
 
 ```bash
 cd server
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o focus-guard-server main.go
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o undrift-server main.go
 ```
 
 ### Deployment Options
@@ -103,7 +103,7 @@ npm run build
 
 ```bash
 aws dynamodb create-table \
-  --table-name FocusGuardPayments \
+  --table-name UndriftPayments \
   --attribute-definitions AttributeName=paymentId,AttributeType=S \
   --key-schema AttributeName=paymentId,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST
@@ -123,7 +123,7 @@ aws dynamodb create-table \
         "dynamodb:UpdateItem",
         "dynamodb:Scan"
       ],
-      "Resource": "arn:aws:dynamodb:*:*:table/FocusGuardPayments"
+      "Resource": "arn:aws:dynamodb:*:*:table/UndriftPayments"
     }
   ]
 }

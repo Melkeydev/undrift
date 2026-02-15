@@ -227,7 +227,7 @@ export default defineConfig({
 
 ## What the user experience looks like
 
-1. User installs Focus Guard from Chrome Web Store
+1. User installs Undrift from Chrome Web Store
 2. Clicks extension icon → popup opens
 3. Selects sites, starts a focus session → blocking works immediately
 4. Visits blocked site → sees intervention page with breathing/reflect/stats tools

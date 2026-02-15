@@ -2,7 +2,7 @@
 
 ## Overview
 
-Focus Guard is a Chrome extension + web platform that helps users quit distracting websites through blocking, behavioral interventions, time tracking, and a personal analytics dashboard. The extension handles all real-time functionality (blocking, tracking, notifications) while the server provides data persistence, user accounts, and the dashboard web app.
+Undrift is a Chrome extension + web platform that helps users quit distracting websites through blocking, behavioral interventions, time tracking, and a personal analytics dashboard. The extension handles all real-time functionality (blocking, tracking, notifications) while the server provides data persistence, user accounts, and the dashboard web app.
 
 ## System Diagram
 
@@ -74,7 +74,7 @@ Focus Guard is a Chrome extension + web platform that helps users quit distracti
 | Technology | Previous Purpose | Status |
 |---|---|---|
 | Stripe (v76 SDK) | $1 payment to break blocks | **Removed** |
-| DynamoDB `FocusGuardPayments` table | Payment records | **Replaced** with user/tracking data |
+| DynamoDB `UndriftPayments` table | Payment records | **Replaced** with user/tracking data |
 
 ## Client Architecture
 

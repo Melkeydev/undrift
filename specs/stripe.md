@@ -1,10 +1,10 @@
 # Stripe Integration
 
-> **DEPRECATED:** This document describes the v1 payment system which has been removed. Focus Guard v2 replaces the $1 payment mechanism with QUITTR-inspired behavioral interventions (see [interventions.md](./interventions.md)). This document is kept for historical reference only.
+> **DEPRECATED:** This document describes the v1 payment system which has been removed. Undrift v2 replaces the $1 payment mechanism with QUITTR-inspired behavioral interventions (see [interventions.md](./interventions.md)). This document is kept for historical reference only.
 
 ## Overview
 
-Focus Guard v1 used Stripe Checkout to process $1 payments when a user wanted to "break" a focus block. The integration used Stripe's hosted checkout page (no PCI compliance burden on the server).
+Undrift v1 used Stripe Checkout to process $1 payments when a user wanted to "break" a focus block. The integration used Stripe's hosted checkout page (no PCI compliance burden on the server).
 
 ---
 

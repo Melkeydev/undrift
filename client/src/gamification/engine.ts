@@ -6,7 +6,7 @@ import type {
   XPEvent,
   EarnedAchievement,
 } from "./types";
-import { ACHIEVEMENT_DEFINITIONS, ACHIEVEMENT_XP } from "./achievements";
+import { ACHIEVEMENT_DEFINITIONS } from "./achievements";
 import { calculateLevel } from "./levels";
 
 const DAILY_XP_CAP = 500;

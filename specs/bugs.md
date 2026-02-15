@@ -1,6 +1,6 @@
 # Bugs and Issues
 
-> **Note:** Focus Guard v2 removes the Stripe payment system. Payment-related bugs (BUG-001, BUG-005, BUG-006, BUG-012, BUG-013, BUG-016, BUG-017) are no longer applicable and are listed under [Resolved by Pivot](#resolved-by-pivot) at the bottom.
+> **Note:** Undrift v2 removes the Stripe payment system. Payment-related bugs (BUG-001, BUG-005, BUG-006, BUG-012, BUG-013, BUG-016, BUG-017) are no longer applicable and are listed under [Resolved by Pivot](#resolved-by-pivot) at the bottom.
 
 ## Critical
 

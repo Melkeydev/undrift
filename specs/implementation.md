@@ -3,7 +3,7 @@
 ## Project Structure
 
 ```
-focus-guard/
+undrift/
 ├── client/                          # Chrome Extension (React + TypeScript)
 │   ├── src/
 │   │   ├── background/
@@ -137,7 +137,7 @@ Environment variables loaded at startup:
 |----------|---------|---------|
 | `STRIPE_SECRET_KEY` | (none) | Stripe API authentication |
 | `STRIPE_WEBHOOK_SECRET` | (none) | Webhook signature verification |
-| `DYNAMODB_TABLE` | `FocusGuardPayments` | DynamoDB table name |
+| `DYNAMODB_TABLE` | `UndriftPayments` | DynamoDB table name |
 | `SUCCESS_URL` | `https://example.com/success` | Post-payment redirect |
 | `CANCEL_URL` | `https://example.com/cancel` | Payment cancel redirect |
 | `PORT` | `8080` | Server listen port |
@@ -237,5 +237,5 @@ go run main.go
 
 Requires:
 - AWS credentials configured (via env vars, `~/.aws/credentials`, or IAM role)
-- DynamoDB table `FocusGuardPayments` created in the configured region
+- DynamoDB table `UndriftPayments` created in the configured region
 - Stripe API keys
