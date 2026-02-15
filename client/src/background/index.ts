@@ -1,10 +1,3 @@
-// ============================================================================
-// Focus Guard v2 — Background Service Worker
-// ============================================================================
-// ALL event listeners are registered at the TOP LEVEL per MV3 requirements.
-// ALL state is persisted in chrome.storage.local (never in-memory globals).
-// ============================================================================
-
 import {
   getGamificationData,
   saveGamificationData,
@@ -18,12 +11,9 @@ import {
   ACHIEVEMENT_DEFINITIONS,
 } from "../gamification";
 import type {
-  GamificationData,
   EarnedAchievement,
   CounterEvent,
 } from "../gamification";
-
-// --- Interfaces ---
 
 interface BlockSession {
   isActive: boolean;
@@ -77,16 +67,12 @@ interface Reflection {
   domain?: string;
 }
 
-// --- Constants ---
-
 const DEFAULT_BLOCKED_SITES = ["twitter.com", "x.com"];
 const IDLE_DETECTION_INTERVAL = 60;
 const HEARTBEAT_PERIOD_MINUTES = 0.5;
 const TIME_ALERT_THRESHOLDS = [15, 30, 60]; // minutes
 const SESSION_WARNING_MINUTES = 5;
 const MAX_LOCAL_SESSIONS = 100;
-
-// --- Helpers ---
 
 function getTodayString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -135,8 +121,6 @@ function getBlockedPageUrl(originalUrl: string): string {
   const blockedPage = chrome.runtime.getURL("src/blocked/index.html");
   return `${blockedPage}?returnUrl=${encodeURIComponent(originalUrl)}`;
 }
-
-// --- Storage Accessors ---
 
 async function getSession(): Promise<BlockSession> {
   const result = await chrome.storage.local.get("session");
@@ -190,8 +174,6 @@ async function saveNotificationState(
 ): Promise<void> {
   await chrome.storage.local.set({ notificationState: state });
 }
-
-// --- Blocking Logic (preserved from v1) ---
 
 async function redirectExistingTabs(blockedSites: string[]): Promise<void> {
   const tabs = await chrome.tabs.query({});
@@ -256,8 +238,6 @@ async function disableBlocking(): Promise<void> {
     removeRuleIds: existingIds,
   });
 }
-
-// --- Time Tracking ---
 
 async function flushCurrentTracking(): Promise<void> {
   const tracking = await getTimeTracking();
@@ -332,8 +312,6 @@ async function resumeTrackingForActiveTab(): Promise<void> {
   }
 }
 
-// --- Notifications ---
-
 async function sendNotification(
   id: string,
   title: string,
@@ -386,8 +364,6 @@ async function checkTimeAlerts(): Promise<void> {
   if (changed) await saveNotificationState(state);
 }
 
-// --- Gamification Processing ---
-
 interface GamificationResult {
   xpAwarded: number;
   newAchievements: EarnedAchievement[];
@@ -406,10 +382,8 @@ async function processGamificationEvent(
     ? await getSessionCtx(session.sessionId)
     : undefined;
 
-  // Update counters
   data = updateCounters(data, counterEvent);
 
-  // Award XP
   let totalAwarded = 0;
   let leveledUp = false;
   let newLevel = data.xp.level;
@@ -424,12 +398,10 @@ async function processGamificationEvent(
     }
   }
 
-  // Check achievements
   const achievementResult = checkAchievements(data, checkCtx);
   data = achievementResult.data;
   const newAchievements = achievementResult.newAchievements;
 
-  // Award XP for new achievements
   for (const a of newAchievements) {
     const def = ACHIEVEMENT_DEFINITIONS.find((d) => d.id === a.id);
     const xp = ACHIEVEMENT_XP[a.tier];
@@ -442,11 +414,9 @@ async function processGamificationEvent(
     }
   }
 
-  // Save
   await saveGamificationData(data);
   if (sessionCtx) await saveSessionCtx(sessionCtx);
 
-  // Notifications
   for (const a of newAchievements) {
     const def = ACHIEVEMENT_DEFINITIONS.find((d) => d.id === a.id);
     if (def) {
@@ -470,8 +440,6 @@ async function processGamificationEvent(
   return { xpAwarded: totalAwarded, newAchievements, leveledUp, newLevel };
 }
 
-// --- Session Management ---
-
 async function startSession(
   durationMinutes: number,
   sites: string[]
@@ -494,18 +462,14 @@ async function startSession(
   await enableBlocking(session.blockedSites);
   await redirectExistingTabs(session.blockedSites);
 
-  // Initialize gamification session context
   await saveSessionCtx(createDefaultSessionCtx(sessionId));
 
-  // Reset session warning flag
   const notifState = await getNotificationState();
   notifState.sessionWarningFired = false;
   await saveNotificationState(notifState);
 
-  // Session end alarm
   chrome.alarms.create("sessionEnd", { when: endsAt });
 
-  // Session warning alarm (5 min before end)
   const warningTime = endsAt - SESSION_WARNING_MINUTES * 60 * 1000;
   if (warningTime > now) {
     chrome.alarms.create("session-warning", { when: warningTime });
@@ -520,13 +484,11 @@ async function endSession(
 
   const completed = reason === "timer" || reason === "browser_closed";
 
-  // Update session record
   session.isActive = false;
   session.endedAt = Date.now();
   session.endReason = reason;
   session.completed = completed;
 
-  // If manual end, mark any pending interruptions as "broke"
   if (reason === "manual") {
     for (const interruption of session.interruptions) {
       if ((interruption.outcome as string) === "pending") {
@@ -541,7 +503,6 @@ async function endSession(
   chrome.alarms.clear("sessionEnd");
   chrome.alarms.clear("session-warning");
 
-  // Save to session history
   const history = await getSessionHistory();
   history.sessions.unshift({ ...session });
   if (history.sessions.length > MAX_LOCAL_SESSIONS) {
@@ -549,7 +510,6 @@ async function endSession(
   }
   await saveSessionHistory(history);
 
-  // Gamification
   if (completed) {
     const durationBonus = Math.floor(session.durationMinutes / 30) * 10;
     const xpActions: { source: Parameters<typeof awardXP>[1]; amount: number; description: string }[] = [
@@ -570,7 +530,6 @@ async function endSession(
     );
   }
 
-  // Session complete notification
   if (completed) {
     const interruptionCount = session.interruptions.length;
     const siteCount = session.blockedSites.length;
@@ -586,36 +545,25 @@ async function endSession(
   }
 }
 
-// --- Alarms Setup ---
-
 async function ensureAlarmsExist(): Promise<void> {
-  // Heartbeat
   const heartbeat = await chrome.alarms.get("heartbeat");
   if (!heartbeat) {
     chrome.alarms.create("heartbeat", {
       periodInMinutes: HEARTBEAT_PERIOD_MINUTES,
     });
   }
-
 }
 
-// ============================================================================
-// TOP-LEVEL EVENT LISTENERS (MV3 requirement)
-// ============================================================================
-
-// --- Idle Detection ---
+// Top-level event listeners required by MV3
 chrome.idle.setDetectionInterval(IDLE_DETECTION_INTERVAL);
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
   if (newState === "active") {
     await resumeTrackingForActiveTab();
   } else {
-    // "idle" or "locked" — pause tracking
     await stopTracking();
   }
 });
-
-// --- Tab Monitoring ---
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   await handleTabChange(activeInfo.tabId, activeInfo.windowId);
@@ -623,7 +571,6 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
   if (changeInfo.url === undefined) return;
-  // Only handle if this is the active tab in the focused window
   if (!tab.active) return;
   const focusedWindow = await chrome.windows.getLastFocused();
   if (tab.windowId !== focusedWindow.id) return;
@@ -639,16 +586,13 @@ chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
 });
 
 chrome.tabs.onRemoved.addListener(async (_tabId) => {
-  // If the removed tab was the one being tracked, resume for the new active tab
   await resumeTrackingForActiveTab();
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    // Chrome lost focus entirely
     await stopTracking();
   } else {
-    // Focus changed to a different window — track its active tab
     try {
       const [tab] = await chrome.tabs.query({
         active: true,
@@ -667,8 +611,6 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     }
   }
 });
-
-// --- Alarms ---
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "sessionEnd") {
@@ -698,8 +640,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     return;
   }
 });
-
-// --- Messages ---
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "START_SESSION") {
@@ -813,7 +753,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       });
       await chrome.storage.local.set({ reflections });
 
-      // Gamification: only if reflection is meaningful (>= 10 chars)
       let gamResult: GamificationResult | null = null;
       if (text.length >= 10) {
         gamResult = await processGamificationEvent(
@@ -831,8 +770,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 });
 
-// --- Startup & Install ---
-
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureAlarmsExist();
 
@@ -846,11 +783,9 @@ chrome.runtime.onInstalled.addListener(async () => {
       chrome.alarms.create("session-warning", { when: warningTime });
     }
   } else if (session.isActive) {
-    // Session expired during update/install
     await endSession("browser_closed");
   }
 
-  // Start tracking for the current active tab
   await resumeTrackingForActiveTab();
 });
 
@@ -859,7 +794,6 @@ chrome.runtime.onStartup.addListener(async () => {
 
   const session = await getSession();
   if (session.isActive && session.endsAt > Date.now()) {
-    // Session still active — re-verify alarms
     chrome.alarms.create("sessionEnd", { when: session.endsAt });
     const warningTime =
       session.endsAt - SESSION_WARNING_MINUTES * 60 * 1000;
@@ -867,11 +801,9 @@ chrome.runtime.onStartup.addListener(async () => {
       chrome.alarms.create("session-warning", { when: warningTime });
     }
   } else if (session.isActive) {
-    // Session expired while browser was closed
     await endSession("browser_closed");
   }
 
-  // Resume time tracking for whatever tab is currently active
   await resumeTrackingForActiveTab();
 });
 

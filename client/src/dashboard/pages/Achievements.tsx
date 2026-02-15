@@ -9,7 +9,6 @@ import {
 import type {
   GamificationData,
   AchievementCategory,
-  EarnedAchievement,
 } from "../../gamification";
 import { getGamificationData } from "../storage";
 
@@ -87,7 +86,6 @@ export default function Achievements() {
 
   return (
     <div className="animate-page-enter">
-      {/* Level Display */}
       <div className="bg-bg-card border border-border-card rounded-md p-6 backdrop-blur-[8px] shadow-card mb-7">
         <div className="flex items-center gap-6 py-4 px-2">
           <LevelBadge level={progress.level} progressPercent={progress.progressPercent} size="lg" />
@@ -111,7 +109,6 @@ export default function Achievements() {
         </div>
       </div>
 
-      {/* Stats Summary */}
       <div className="grid grid-cols-4 gap-3 mb-7 max-md:grid-cols-2">
         <div className="bg-bg-card border border-border-card rounded-md p-4 text-center">
           <div className="font-display text-2xl text-text-heading">{earnedCount}/{totalCount}</div>
@@ -127,7 +124,6 @@ export default function Achievements() {
         ))}
       </div>
 
-      {/* Category Tabs */}
       <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => (
           <button
@@ -144,7 +140,6 @@ export default function Achievements() {
         ))}
       </div>
 
-      {/* Achievement Grid */}
       <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-secondary mb-4">
         Achievements
       </h3>
@@ -221,7 +216,6 @@ export default function Achievements() {
         })}
       </div>
 
-      {/* Recent XP Feed */}
       {data.xp.history.length > 0 && (
         <>
           <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-secondary mb-4">

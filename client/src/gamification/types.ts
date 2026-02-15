@@ -1,7 +1,3 @@
-// ============================================================================
-// Gamification Types
-// ============================================================================
-
 export type AchievementTier = "bronze" | "silver" | "gold" | "platinum";
 
 export type AchievementCategory =

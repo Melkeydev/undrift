@@ -76,7 +76,6 @@ export default function Overview() {
         ))}
       </div>
 
-      {/* Level & Latest Achievement */}
       {gamification && (() => {
         const xpProgress = getXPProgress(gamification.xp.total);
         const levelTitle = getLevelTitle(xpProgress.level);

@@ -1,19 +1,5 @@
-// ============================================================================
-// Level / XP Calculation — Pure Functions
-// ============================================================================
-
-/** Cumulative XP thresholds for each level (index = level) */
 const LEVEL_THRESHOLDS: number[] = [
-  0,      // Level 1
-  100,    // Level 2
-  350,    // Level 3
-  800,    // Level 4
-  1500,   // Level 5
-  2500,   // Level 6
-  4000,   // Level 7
-  6000,   // Level 8
-  9000,   // Level 9
-  13000,  // Level 10
+  0, 100, 350, 800, 1500, 2500, 4000, 6000, 9000, 13000
 ];
 
 // Levels 11-20: +5,000 each
@@ -39,7 +25,6 @@ export function getXPForLevel(level: number): number {
   if (level <= 1) return 0;
   const idx = level - 1;
   if (idx < LEVEL_THRESHOLDS.length) return LEVEL_THRESHOLDS[idx]!;
-  // Levels 51+: +20,000 each beyond level 50
   const extra = idx - LEVEL_THRESHOLDS.length + 1;
   return LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1]! + extra * 20000;
 }

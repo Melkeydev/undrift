@@ -1,7 +1,3 @@
-// Types used by dashboard pages.
-// Mock data kept for reference but no longer used as fallback —
-// the dashboard reads live data from chrome.storage.
-
 export interface TimeTrackingEntry {
   date: string;
   domain: string;

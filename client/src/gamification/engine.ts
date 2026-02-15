@@ -1,7 +1,3 @@
-// ============================================================================
-// Gamification Engine — Pure Functions (no side effects)
-// ============================================================================
-
 import type {
   GamificationData,
   GamificationSessionCtx,
@@ -17,8 +13,6 @@ const DAILY_XP_CAP = 500;
 const MAX_HISTORY = 50;
 const MAX_RESISTANCE_PER_SESSION = 5;
 const MAX_BREATHING_PER_SESSION = 3;
-
-// --- Factory ---
 
 export function createDefaultGamificationData(): GamificationData {
   return {
@@ -53,8 +47,6 @@ export function createDefaultSessionCtx(sessionId: string): GamificationSessionC
   };
 }
 
-// --- XP ---
-
 interface AwardXPResult {
   data: GamificationData;
   awarded: number;
@@ -71,20 +63,17 @@ export function awardXP(
 ): AwardXPResult {
   const today = getTodayString();
 
-  // Day rollover
   if (data.xp.todayDate !== today) {
     data.xp.todayEarned = 0;
     data.xp.todayDate = today;
   }
 
-  // Achievement XP is exempt from daily cap
   let awarded = amount;
   if (source !== "achievement") {
     const remaining = Math.max(0, DAILY_XP_CAP - data.xp.todayEarned);
     awarded = Math.min(amount, remaining);
   }
 
-  // Per-session caps
   if (sessionCtx) {
     if (source === "interruption_resisted") {
       if (sessionCtx.interruptionsRewarded >= MAX_RESISTANCE_PER_SESSION) {
@@ -132,8 +121,6 @@ export function awardXP(
   };
 }
 
-// --- Counters ---
-
 export type CounterEvent =
   | { type: "session_complete"; durationMinutes: number; interruptionCount: number; startedAt: number }
   | { type: "session_manual_end" }
@@ -176,8 +163,6 @@ export function updateCounters(
 
   return data;
 }
-
-// --- Achievements ---
 
 interface CheckContext {
   sessionStartedAt?: number;
@@ -248,20 +233,15 @@ function evaluateCustomCheck(
       return (ctx?.sessionDurationMinutes ?? 0) >= 180;
     }
     case "iron_will":
-      // This needs daily tracking — approximate with total
       return counters.totalInterruptionsResisted >= 10;
     case "perfectionist":
-      // Would need calendar data — not checkable from counters alone
       return false;
     case "clean_slate":
-      // Would need time tracking data — not checkable from counters alone
       return false;
     default:
       return false;
   }
 }
-
-// --- Helpers ---
 
 function getTodayString(): string {
   return new Date().toISOString().slice(0, 10);

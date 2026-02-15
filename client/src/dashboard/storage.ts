@@ -1,6 +1,3 @@
-// storage.ts — reads directly from chrome.storage.local
-// Replaces the fetch-based api.ts from the standalone dashboard
-
 import type {
   TimeTrackingEntry,
   Session,
@@ -8,8 +5,6 @@ import type {
   Settings,
   SiteBreakdown,
 } from './mockData';
-
-// --- Chrome storage data shapes (from background service worker) ---
 
 interface StoredTimeTracking {
   daily: {
@@ -45,8 +40,6 @@ interface StoredSessionHistory {
   lastSyncedAt: number;
 }
 
-// --- Helpers ---
-
 function todayStr(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -56,8 +49,6 @@ function daysAgoStr(n: number): string {
   d.setDate(d.getDate() - n);
   return d.toISOString().split('T')[0];
 }
-
-// --- Public API (same signatures as the old api.ts) ---
 
 export async function getTimeTracking(
   start: string,
@@ -86,7 +77,6 @@ export async function getSiteBreakdown(): Promise<SiteBreakdown[]> {
   const monthAgo = daysAgoStr(29);
   const twoWeeksAgo = daysAgoStr(13);
 
-  // Aggregate per domain
   const domainStats: Record<string, { today: number; weekTotal: number; weekDays: number; monthTotal: number; prevWeekTotal: number }> = {};
 
   for (const [date, domains] of Object.entries(timeTracking.daily)) {
@@ -134,7 +124,6 @@ export async function getSessions(
   const { sessionHistory } = await chrome.storage.local.get('sessionHistory') as { sessionHistory?: StoredSessionHistory };
   const storedSessions = sessionHistory?.sessions || [];
 
-  // Convert stored format to dashboard format
   const sessions: Session[] = storedSessions.map((s) => ({
     id: s.sessionId,
     startedAt: new Date(s.startedAt).toISOString(),
@@ -150,7 +139,6 @@ export async function getSessions(
     })),
   }));
 
-  // Sort by startedAt descending
   sessions.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
   const start = (page - 1) * limit;
 
@@ -164,7 +152,6 @@ export async function getCalendarData(): Promise<{ date: string; completed: bool
   const { sessionHistory } = await chrome.storage.local.get('sessionHistory') as { sessionHistory?: StoredSessionHistory };
   const sessions = sessionHistory?.sessions || [];
 
-  // Build set of dates that had completed sessions
   const completedDates = new Set<string>();
   for (const s of sessions) {
     if (s.completed && s.startedAt) {
@@ -173,7 +160,6 @@ export async function getCalendarData(): Promise<{ date: string; completed: bool
     }
   }
 
-  // Generate last 90 days
   return Array.from({ length: 90 }, (_, i) => {
     const date = daysAgoStr(89 - i);
     return { date, completed: completedDates.has(date) };
@@ -200,13 +186,11 @@ export async function getOverviewStats(): Promise<OverviewStats> {
   const completedSessions = sessions.filter((s) => s.completed);
   const totalSessions = sessions.length;
 
-  // Today's resisted interruptions
   const todayInterruptions = todaySessions.reduce(
     (sum, s) => sum + s.interruptions.filter((i) => i.outcome === 'stayed').length,
     0
   );
 
-  // Weekly trend
   const weeklyTrend = Array.from({ length: 7 }, (_, i) => {
     const date = daysAgoStr(6 - i);
     const dayData = timeTracking?.daily?.[date] || {};
@@ -214,17 +198,14 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     return { date, seconds };
   });
 
-  // Average session minutes
   const avgSessionMinutes = completedSessions.length > 0
     ? Math.round(completedSessions.reduce((sum, s) => sum + s.durationMinutes, 0) / completedSessions.length)
     : 0;
 
-  // Completion rate
   const completionRate = totalSessions > 0
     ? completedSessions.length / totalSessions
     : 0;
 
-  // Most resisted site
   const siteCounts: Record<string, number> = {};
   for (const s of sessions) {
     for (const i of s.interruptions) {
@@ -258,8 +239,6 @@ export async function getSettings(): Promise<Settings> {
     },
   };
 }
-
-// --- Gamification ---
 
 export async function getGamificationData() {
   const { gamification } = await chrome.storage.local.get('gamification');

@@ -20,7 +20,6 @@ export function LevelBadge({ level, progressPercent, size = "sm" }: LevelBadgePr
       style={{ display: "block", flexShrink: 0 }}
       aria-label={`Level ${level}, ${Math.round(progressPercent)}% to next`}
     >
-      {/* Dark track */}
       <circle
         cx={px / 2}
         cy={px / 2}
@@ -29,7 +28,6 @@ export function LevelBadge({ level, progressPercent, size = "sm" }: LevelBadgePr
         stroke="rgba(255,255,255,0.08)"
         strokeWidth={strokeWidth}
       />
-      {/* Progress ring */}
       <circle
         cx={px / 2}
         cy={px / 2}
@@ -43,7 +41,6 @@ export function LevelBadge({ level, progressPercent, size = "sm" }: LevelBadgePr
         transform={`rotate(-90 ${px / 2} ${px / 2})`}
         style={{ transition: "stroke-dashoffset 0.5s ease" }}
       />
-      {/* Level number */}
       <text
         x={px / 2}
         y={px / 2}

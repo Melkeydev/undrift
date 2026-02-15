@@ -1,8 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import "./blocked.css";
 
-// ── Types ──
-
 interface BlockSession {
   isActive: boolean;
   endsAt: number;
@@ -15,8 +13,6 @@ interface StatsData {
 }
 
 type BreathePhase = "inhale" | "hold-in" | "exhale" | "hold-out";
-
-// ── Constants ──
 
 const MOTIVATIONAL_MESSAGES = [
   "You started this session for a reason.",
@@ -46,8 +42,6 @@ const PHASE_LABELS: Record<BreathePhase, string> = {
 };
 
 const PHASE_ORDER: BreathePhase[] = ["inhale", "hold-in", "exhale", "hold-out"];
-
-// ── Helpers ──
 
 function getReturnUrl(): string | null {
   const params = new URLSearchParams(window.location.search);
@@ -84,47 +78,36 @@ function getEncouragingMessage(interruptions: number): string {
   return "Each time you resist gets easier.";
 }
 
-// ── Component ──
-
 export function Blocked() {
   const returnUrl = getReturnUrl();
   const blockedSite = returnUrl ? getHostname(returnUrl) : "this site";
 
-  // Core state
   const [session, setSession] = useState<BlockSession | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [motivationalMsg] = useState(() => pickRandom(MOTIVATIONAL_MESSAGES));
 
-  // Personal reason
   const [personalReason, setPersonalReason] = useState<string | null>(null);
   const [reasonInput, setReasonInput] = useState("");
 
-  // Tool card expansion
   const [expandedTool, setExpandedTool] = useState<
     "breathe" | "reflect" | "stats" | null
   >(null);
 
-  // Breathe state
   const [breatheActive, setBreatheActive] = useState(false);
   const [breathePhase, setBreathePhase] = useState<BreathePhase>("inhale");
   const [breatheCycle, setBreatheCycle] = useState(0);
   const [breatheComplete, setBreatheComplete] = useState(false);
   const breatheTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reflect state
   const [reflectPrompt] = useState(() => pickRandom(REFLECTION_PROMPTS));
   const [reflectResponse, setReflectResponse] = useState("");
   const [reflectSubmitted, setReflectSubmitted] = useState(false);
 
-  // XP toast state
   const [xpToast, setXpToast] = useState<{ amount: number; key: number } | null>(null);
-  // Achievement modal state
   const [achievementModal, setAchievementModal] = useState<{ name: string; description: string; icon: string } | null>(null);
 
-  // Stats state
   const [stats, setStats] = useState<StatsData>({ interruptionsToday: 0 });
 
-  // ── Fetch session data on mount ──
   useEffect(() => {
     chrome.runtime.sendMessage({ type: "GET_SESSION" }, (response) => {
       if (response) setSession(response);
@@ -138,7 +121,6 @@ export function Blocked() {
       if (result.personalReason) setPersonalReason(result.personalReason);
     });
 
-    // Log interruption on page view
     if (returnUrl) {
       chrome.runtime.sendMessage({
         type: "LOG_INTERRUPTION",
@@ -147,7 +129,6 @@ export function Blocked() {
     }
   }, [returnUrl]);
 
-  // ── Session countdown ──
   useEffect(() => {
     if (!session?.isActive) return;
 
@@ -164,7 +145,6 @@ export function Blocked() {
     return () => clearInterval(interval);
   }, [session]);
 
-  // ── Breathe exercise logic ──
   const advanceBreathe = useCallback(
     (phaseIndex: number, cycle: number) => {
       if (cycle >= BREATHE_TOTAL_CYCLES) {
@@ -208,14 +188,11 @@ export function Blocked() {
     advanceBreathe(0, 0);
   };
 
-  // Cleanup breathe timer
   useEffect(() => {
     return () => {
       if (breatheTimerRef.current) clearTimeout(breatheTimerRef.current);
     };
   }, []);
-
-  // ── Gamification feedback ──
 
   const showGamificationFeedback = (response: { xpAwarded?: number; newAchievements?: { id: string; tier: string }[] }) => {
     if (response.xpAwarded && response.xpAwarded > 0) {
@@ -228,8 +205,6 @@ export function Blocked() {
       setAchievementModal({ name, description: "Achievement unlocked!", icon: "\u2B50" });
     }
   };
-
-  // ── Handlers ──
 
   const saveReason = () => {
     const trimmed = reasonInput.trim();
@@ -275,8 +250,6 @@ export function Blocked() {
     }
   };
 
-  // ── Computed values ──
-
   const sessionDuration = session?.startedAt
     ? session.endsAt - session.startedAt
     : 0;
@@ -287,8 +260,6 @@ export function Blocked() {
       : 0;
   const minutesLeft = Math.max(0, Math.ceil(remaining / 60000));
 
-  // ── Session ended view ──
-
   if (!session?.isActive) {
     return (
       <div className="ended-page">
@@ -298,8 +269,6 @@ export function Blocked() {
       </div>
     );
   }
-
-  // ── Main intervention page ──
 
   return (
     <div className="blocked-page">
@@ -486,12 +455,10 @@ export function Blocked() {
         Go back to work
       </button>
 
-      {/* XP Toast */}
       {xpToast && (
         <div key={xpToast.key} className="xp-toast">+{xpToast.amount} XP</div>
       )}
 
-      {/* Achievement Modal */}
       {achievementModal && (
         <div className="achievement-overlay" onClick={() => setAchievementModal(null)}>
           <div className="achievement-modal" onClick={(e) => e.stopPropagation()}>
