@@ -1,9 +1,9 @@
 import {
   getGamificationData,
-  saveGamificationData,
   getSessionCtx,
   saveSessionCtx,
   createDefaultSessionCtx,
+  createDefaultGamificationData,
   awardXP,
   updateCounters,
   checkAchievements,
@@ -69,10 +69,14 @@ interface Reflection {
 
 const DEFAULT_BLOCKED_SITES = ["twitter.com", "x.com"];
 const IDLE_DETECTION_INTERVAL = 60;
-const HEARTBEAT_PERIOD_MINUTES = 0.5;
+const HEARTBEAT_PERIOD_MINUTES = 1;
 const TIME_ALERT_THRESHOLDS = [15, 30, 60]; // minutes
 const SESSION_WARNING_MINUTES = 5;
 const MAX_LOCAL_SESSIONS = 100;
+const MAX_REFLECTIONS = 200;
+
+let tabChangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const TAB_CHANGE_DEBOUNCE_MS = 150;
 
 function getTodayString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -239,13 +243,13 @@ async function disableBlocking(): Promise<void> {
   });
 }
 
-async function flushCurrentTracking(): Promise<void> {
+async function flushCurrentTracking(): Promise<TimeTrackingData> {
   const tracking = await getTimeTracking();
-  if (!tracking.current) return;
+  if (!tracking.current) return tracking;
 
   const now = Date.now();
   const elapsed = Math.round((now - tracking.current.startedAt) / 1000);
-  if (elapsed <= 0) return;
+  if (elapsed <= 0) return tracking;
 
   const today = getTodayString();
   if (!tracking.daily[today]) tracking.daily[today] = {};
@@ -254,20 +258,31 @@ async function flushCurrentTracking(): Promise<void> {
 
   tracking.current.startedAt = now;
   await saveTimeTracking(tracking);
+  return tracking;
 }
 
 async function startTracking(domain: string): Promise<void> {
-  await flushCurrentTracking();
-  const tracking = await getTimeTracking();
+  const tracking = await flushCurrentTracking();
+  if (tracking.current?.domain === domain) return;
+
   tracking.current = { domain, startedAt: Date.now() };
   await saveTimeTracking(tracking);
+
+  const heartbeat = await chrome.alarms.get("heartbeat");
+  if (!heartbeat) {
+    chrome.alarms.create("heartbeat", {
+      periodInMinutes: HEARTBEAT_PERIOD_MINUTES,
+    });
+  }
 }
 
 async function stopTracking(): Promise<void> {
-  await flushCurrentTracking();
-  const tracking = await getTimeTracking();
+  const tracking = await flushCurrentTracking();
+  if (!tracking.current) return;
   tracking.current = null;
   await saveTimeTracking(tracking);
+
+  chrome.alarms.clear("heartbeat");
 }
 
 async function handleTabChange(
@@ -332,38 +347,6 @@ async function sendNotification(
   }
 }
 
-async function checkTimeAlerts(): Promise<void> {
-  const tracking = await getTimeTracking();
-  if (!tracking.current) return;
-
-  const today = getTodayString();
-  const domain = tracking.current.domain;
-  const totalSeconds = tracking.daily[today]?.[domain] || 0;
-  const totalMinutes = totalSeconds / 60;
-
-  const state = await getNotificationState();
-  if (!state.timeAlertsSent[domain]) state.timeAlertsSent[domain] = {};
-
-  let changed = false;
-  for (const threshold of TIME_ALERT_THRESHOLDS) {
-    if (
-      totalMinutes >= threshold &&
-      state.timeAlertsSent[domain][threshold] !== today
-    ) {
-      state.timeAlertsSent[domain][threshold] = today;
-      changed = true;
-      await sendNotification(
-        `time-alert-${domain}-${threshold}`,
-        `${domain} — ${threshold} minutes`,
-        `You've spent ${threshold} minutes on ${domain} today. Is this how you want to spend your time?`,
-        threshold >= 60 ? 2 : 1
-      );
-    }
-  }
-
-  if (changed) await saveNotificationState(state);
-}
-
 interface GamificationResult {
   xpAwarded: number;
   newAchievements: EarnedAchievement[];
@@ -375,12 +358,33 @@ async function processGamificationEvent(
   counterEvent: CounterEvent,
   xpActions: { source: Parameters<typeof awardXP>[1]; amount: number; description: string }[],
   checkCtx?: Parameters<typeof checkAchievements>[1],
+  existingSession?: BlockSession,
 ): Promise<GamificationResult> {
-  let data = await getGamificationData();
-  const session = await getSession();
-  const sessionCtx = session.sessionId
-    ? await getSessionCtx(session.sessionId)
-    : undefined;
+  const storageKeys = ["gamification", "gamificationSessionCtx"];
+  if (!existingSession) storageKeys.push("session");
+  const stored = await chrome.storage.local.get(storageKeys);
+
+  let data = stored.gamification || createDefaultGamificationData();
+
+  const session = existingSession || stored.session || {
+    isActive: false,
+    endsAt: 0,
+    blockedSites: DEFAULT_BLOCKED_SITES,
+    sessionId: "",
+    startedAt: 0,
+    durationMinutes: 0,
+    interruptions: [],
+  };
+
+  let sessionCtx: Awaited<ReturnType<typeof getSessionCtx>> | undefined;
+  if (session.sessionId) {
+    const ctx = stored.gamificationSessionCtx;
+    if (ctx && ctx.sessionId === session.sessionId) {
+      sessionCtx = ctx;
+    } else {
+      sessionCtx = createDefaultSessionCtx(session.sessionId);
+    }
+  }
 
   data = updateCounters(data, counterEvent);
 
@@ -414,8 +418,9 @@ async function processGamificationEvent(
     }
   }
 
-  await saveGamificationData(data);
-  if (sessionCtx) await saveSessionCtx(sessionCtx);
+  const writeData: Record<string, unknown> = { gamification: data };
+  if (sessionCtx) writeData.gamificationSessionCtx = sessionCtx;
+  await chrome.storage.local.set(writeData);
 
   for (const a of newAchievements) {
     const def = ACHIEVEMENT_DEFINITIONS.find((d) => d.id === a.id);
@@ -546,15 +551,17 @@ async function endSession(
 }
 
 async function ensureAlarmsExist(): Promise<void> {
-  const heartbeat = await chrome.alarms.get("heartbeat");
-  if (!heartbeat) {
-    chrome.alarms.create("heartbeat", {
-      periodInMinutes: HEARTBEAT_PERIOD_MINUTES,
-    });
+  const tracking = await getTimeTracking();
+  if (tracking.current) {
+    const heartbeat = await chrome.alarms.get("heartbeat");
+    if (!heartbeat) {
+      chrome.alarms.create("heartbeat", {
+        periodInMinutes: HEARTBEAT_PERIOD_MINUTES,
+      });
+    }
   }
 }
 
-// Top-level event listeners required by MV3
 chrome.idle.setDetectionInterval(IDLE_DETECTION_INTERVAL);
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
@@ -565,8 +572,28 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   }
 });
 
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  await handleTabChange(activeInfo.tabId, activeInfo.windowId);
+function debouncedHandleTabChange(tabId: number, windowId?: number): void {
+  if (tabChangeDebounceTimer !== null) {
+    clearTimeout(tabChangeDebounceTimer);
+  }
+  tabChangeDebounceTimer = setTimeout(async () => {
+    tabChangeDebounceTimer = null;
+    await handleTabChange(tabId, windowId);
+  }, TAB_CHANGE_DEBOUNCE_MS);
+}
+
+function debouncedResumeTracking(): void {
+  if (tabChangeDebounceTimer !== null) {
+    clearTimeout(tabChangeDebounceTimer);
+  }
+  tabChangeDebounceTimer = setTimeout(async () => {
+    tabChangeDebounceTimer = null;
+    await resumeTrackingForActiveTab();
+  }, TAB_CHANGE_DEBOUNCE_MS);
+}
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  debouncedHandleTabChange(activeInfo.tabId, activeInfo.windowId);
 });
 
 chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
@@ -578,15 +605,15 @@ chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
   if (isTrackableUrl(changeInfo.url)) {
     const domain = extractDomain(changeInfo.url);
     if (domain) {
-      await startTracking(domain);
+      debouncedHandleTabChange(tab.id!, tab.windowId);
       return;
     }
   }
   await stopTracking();
 });
 
-chrome.tabs.onRemoved.addListener(async (_tabId) => {
-  await resumeTrackingForActiveTab();
+chrome.tabs.onRemoved.addListener((_tabId) => {
+  debouncedResumeTracking();
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
@@ -601,7 +628,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       if (tab?.id && tab.url && isTrackableUrl(tab.url)) {
         const domain = extractDomain(tab.url);
         if (domain) {
-          await startTracking(domain);
+          debouncedHandleTabChange(tab.id, windowId);
           return;
         }
       }
@@ -635,8 +662,50 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 
   if (alarm.name === "heartbeat") {
-    await flushCurrentTracking();
-    await checkTimeAlerts();
+    const result = await chrome.storage.local.get(["timeTracking", "notificationState"]);
+    const tracking: TimeTrackingData = result.timeTracking || { daily: {}, current: null };
+    if (!tracking.current) return;
+
+    const now = Date.now();
+    const today = getTodayString();
+    const elapsed = Math.round((now - tracking.current.startedAt) / 1000);
+    if (elapsed > 0) {
+      if (!tracking.daily[today]) tracking.daily[today] = {};
+      tracking.daily[today][tracking.current.domain] =
+        (tracking.daily[today][tracking.current.domain] || 0) + elapsed;
+      tracking.current.startedAt = now;
+    }
+
+    const domain = tracking.current.domain;
+    const totalSeconds = tracking.daily[today]?.[domain] || 0;
+    const totalMinutes = totalSeconds / 60;
+
+    const notifState: NotificationState = result.notificationState || {
+      timeAlertsSent: {},
+      sessionWarningFired: false,
+    };
+    if (!notifState.timeAlertsSent[domain]) notifState.timeAlertsSent[domain] = {};
+
+    let notifChanged = false;
+    for (const threshold of TIME_ALERT_THRESHOLDS) {
+      if (
+        totalMinutes >= threshold &&
+        notifState.timeAlertsSent[domain][threshold] !== today
+      ) {
+        notifState.timeAlertsSent[domain][threshold] = today;
+        notifChanged = true;
+        await sendNotification(
+          `time-alert-${domain}-${threshold}`,
+          `${domain} — ${threshold} minutes`,
+          `You've spent ${threshold} minutes on ${domain} today. Is this how you want to spend your time?`,
+          threshold >= 60 ? 2 : 1
+        );
+      }
+    }
+
+    const writeData: Record<string, unknown> = { timeTracking: tracking };
+    if (notifChanged) writeData.notificationState = notifState;
+    await chrome.storage.local.set(writeData);
     return;
   }
 });
@@ -657,6 +726,62 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message.type === "GET_SESSION") {
     getSession().then((session) => sendResponse(session));
+    return true;
+  }
+
+  if (message.type === "GET_POPUP_STATE") {
+    (async () => {
+      const result = await chrome.storage.local.get([
+        "session",
+        "selectedPresets",
+        "customSites",
+        "timeTracking",
+        "sessionHistory",
+        "gamification",
+      ]);
+
+      const session = result.session || {
+        isActive: false,
+        endsAt: 0,
+        blockedSites: DEFAULT_BLOCKED_SITES,
+        sessionId: "",
+        startedAt: 0,
+        durationMinutes: 0,
+        interruptions: [],
+      };
+
+      const tracking: TimeTrackingData = result.timeTracking || { daily: {}, current: null };
+      const today = getTodayString();
+      const todayData = tracking.daily[today] || {};
+      const todayScreenTime = Object.values(todayData).reduce(
+        (sum, s) => sum + s,
+        0
+      );
+
+      const history = result.sessionHistory || { sessions: [], lastSyncedAt: 0 };
+      const completedSessions = history.sessions.filter(
+        (s: BlockSession) => s.completed
+      ).length;
+      const totalSessions = history.sessions.length;
+
+      sendResponse({
+        session,
+        selectedPresets: result.selectedPresets || ["twitter"],
+        customSites: result.customSites || [],
+        todayScreenTime,
+        stats: {
+          todayTracking: todayData,
+          totalTodaySeconds: todayScreenTime,
+          completedSessions,
+          totalSessions,
+          completionRate:
+            totalSessions > 0
+              ? Math.round((completedSessions / totalSessions) * 100)
+              : 0,
+        },
+        gamification: result.gamification || null,
+      });
+    })();
     return true;
   }
 
@@ -683,6 +808,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const gamResult = await processGamificationEvent(
         { type: "interruption_resisted" },
         [{ source: "interruption_resisted", amount: 15, description: `Resisted ${message.domain || "distraction"}` }],
+        undefined,
+        session,
       );
       sendResponse({ success: true, xpAwarded: gamResult.xpAwarded, newAchievements: gamResult.newAchievements });
     })();
@@ -751,6 +878,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         text,
         domain: message.domain || message.data?.domain,
       });
+      if (reflections.length > MAX_REFLECTIONS) {
+        reflections.splice(0, reflections.length - MAX_REFLECTIONS);
+      }
       await chrome.storage.local.set({ reflections });
 
       let gamResult: GamificationResult | null = null;
@@ -770,12 +900,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 });
 
-chrome.runtime.onInstalled.addListener(async () => {
+async function restoreState(reEnableBlocking: boolean): Promise<void> {
   await ensureAlarmsExist();
 
   const session = await getSession();
   if (session.isActive && session.endsAt > Date.now()) {
-    await enableBlocking(session.blockedSites);
+    if (reEnableBlocking) {
+      await enableBlocking(session.blockedSites);
+    }
     chrome.alarms.create("sessionEnd", { when: session.endsAt });
     const warningTime =
       session.endsAt - SESSION_WARNING_MINUTES * 60 * 1000;
@@ -787,24 +919,14 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 
   await resumeTrackingForActiveTab();
+}
+
+chrome.runtime.onInstalled.addListener(async () => {
+  await restoreState(true);
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  await ensureAlarmsExist();
-
-  const session = await getSession();
-  if (session.isActive && session.endsAt > Date.now()) {
-    chrome.alarms.create("sessionEnd", { when: session.endsAt });
-    const warningTime =
-      session.endsAt - SESSION_WARNING_MINUTES * 60 * 1000;
-    if (warningTime > Date.now()) {
-      chrome.alarms.create("session-warning", { when: warningTime });
-    }
-  } else if (session.isActive) {
-    await endSession("browser_closed");
-  }
-
-  await resumeTrackingForActiveTab();
+  await restoreState(false);
 });
 
 export {};

@@ -77,39 +77,19 @@ export function Popup() {
   );
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: "GET_SESSION" }, (response) => {
-      setSession(response);
-      setLoading(false);
-    });
-
-    chrome.storage.local.get(["selectedPresets", "customSites"], (result) => {
-      setSelectedPresets(result.selectedPresets || ["twitter"]);
-      setCustomSites(result.customSites || []);
-    });
-
-    chrome.runtime.sendMessage({ type: "GET_TIME_TRACKING" }, (response) => {
-      if (response?.daily) {
-        const today = new Date().toISOString().split("T")[0];
-        const todayData = response.daily[today];
-        if (todayData) {
-          const total = Object.values(todayData as Record<string, number>).reduce(
-            (sum, secs) => sum + secs,
-            0
-          );
-          setTodayScreenTime(total);
+    chrome.runtime.sendMessage({ type: "GET_POPUP_STATE" }, (response) => {
+      if (response) {
+        setSession(response.session);
+        setSelectedPresets(response.selectedPresets || ["twitter"]);
+        setCustomSites(response.customSites || []);
+        setTodayScreenTime(response.todayScreenTime || 0);
+        if (response.stats) setSessionStats(response.stats);
+        if (response.gamification?.xp) {
+          const progress = getXPProgress(response.gamification.xp.total);
+          setLevelInfo({ level: progress.level, progressPercent: progress.progressPercent });
         }
       }
-    });
-
-    chrome.runtime.sendMessage({ type: "GET_STATS" }, (response) => {
-      if (response) setSessionStats(response);
-    });
-
-    chrome.runtime.sendMessage({ type: "GET_GAMIFICATION" }, (response) => {
-      if (response?.xp) {
-        const progress = getXPProgress(response.xp.total);
-        setLevelInfo({ level: progress.level, progressPercent: progress.progressPercent });
-      }
+      setLoading(false);
     });
   }, []);
 

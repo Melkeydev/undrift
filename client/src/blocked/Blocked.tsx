@@ -108,6 +108,8 @@ export function Blocked() {
 
   const [stats, setStats] = useState<StatsData>({ interruptionsToday: 0 });
 
+  const lastLoggedRef = useRef<{ domain: string; timestamp: number } | null>(null);
+
   useEffect(() => {
     chrome.runtime.sendMessage({ type: "GET_SESSION" }, (response) => {
       if (response) setSession(response);
@@ -122,10 +124,16 @@ export function Blocked() {
     });
 
     if (returnUrl) {
-      chrome.runtime.sendMessage({
-        type: "LOG_INTERRUPTION",
-        domain: getHostname(returnUrl),
-      });
+      const domain = getHostname(returnUrl);
+      const now = Date.now();
+      const last = lastLoggedRef.current;
+      if (!last || last.domain !== domain || now - last.timestamp > 10000) {
+        lastLoggedRef.current = { domain, timestamp: now };
+        chrome.runtime.sendMessage({
+          type: "LOG_INTERRUPTION",
+          domain,
+        });
+      }
     }
   }, [returnUrl]);
 
@@ -235,19 +243,6 @@ export function Blocked() {
 
   const toggleTool = (tool: "breathe" | "reflect" | "stats") => {
     setExpandedTool((prev) => (prev === tool ? null : tool));
-  };
-
-  const goBackToWork = () => {
-    chrome.runtime.sendMessage({
-      type: "LOG_INTERRUPTION",
-      domain: blockedSite,
-      outcome: "stayed",
-    });
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = "about:blank";
-    }
   };
 
   const sessionDuration = session?.startedAt
@@ -450,10 +445,6 @@ export function Blocked() {
         </div>
       </div>
 
-
-      <button className="go-back-btn" onClick={goBackToWork}>
-        Go back to work
-      </button>
 
       {xpToast && (
         <div key={xpToast.key} className="xp-toast">+{xpToast.amount} XP</div>
