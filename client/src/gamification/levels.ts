@@ -1,16 +1,10 @@
-const LEVEL_THRESHOLDS: number[] = [
-  0, 100, 350, 800, 1500, 2500, 4000, 6000, 9000, 13000
+const LEVEL_THRESHOLDS: readonly number[] = [
+  0, 100, 350, 800, 1500, 2500, 4000, 6000, 9000, 13000,
+  18000, 23000, 28000, 33000, 38000, 43000, 48000, 53000, 58000, 63000,
+  73000, 83000, 93000, 103000, 113000, 123000, 133000, 143000, 153000, 163000,
+  173000, 183000, 193000, 203000, 213000, 223000, 233000, 243000, 253000, 263000,
+  273000, 283000, 293000, 303000, 313000, 323000, 333000, 343000, 353000, 363000,
 ];
-
-// Levels 11-20: +5,000 each
-for (let i = 11; i <= 20; i++) {
-  LEVEL_THRESHOLDS.push(LEVEL_THRESHOLDS[i - 1]! + 5000);
-}
-
-// Levels 21-50: +10,000 each
-for (let i = 21; i <= 50; i++) {
-  LEVEL_THRESHOLDS.push(LEVEL_THRESHOLDS[i - 1]! + 10000);
-}
 
 export function calculateLevel(totalXP: number): number {
   for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {

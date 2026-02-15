@@ -66,6 +66,13 @@ A Chrome extension + web platform that helps users quit distracting websites. Us
 | Notifications | None | Push notifications for time alerts and streaks |
 | Tab monitoring | None | Active tab tracking for time-on-site data |
 
+### Versioning
+
+**Always bump the version when making changes.** Update the version in all three locations:
+1. `client/package.json` — `"version"` field
+2. `client/manifest.json` — `"version"` field
+3. `client/dist/manifest.json` — `"version"` field
+
 ### Critical Implementation Priorities
 
 1. **Tab monitoring + time tracking** — Core new capability the extension needs

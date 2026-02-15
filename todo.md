@@ -15,7 +15,7 @@ Items:
 - [x] Sites like Youtube.com/hash should only count YouTube
 - [x] Optimize the code
 - [] Publish to Chrome Extensions
-- [] Re-analyze background worker chrome memory comsumption
+- [x] Re-analyze background worker chrome memory comsumption
 
 Bugs:
 

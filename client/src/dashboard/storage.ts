@@ -124,7 +124,10 @@ export async function getSessions(
   const { sessionHistory } = await chrome.storage.local.get('sessionHistory') as { sessionHistory?: StoredSessionHistory };
   const storedSessions = sessionHistory?.sessions || [];
 
-  const sessions: Session[] = storedSessions.map((s) => ({
+  const start = (page - 1) * limit;
+  const pageSlice = storedSessions.slice(start, start + limit);
+
+  const sessions: Session[] = pageSlice.map((s) => ({
     id: s.sessionId,
     startedAt: new Date(s.startedAt).toISOString(),
     endedAt: s.endedAt ? new Date(s.endedAt).toISOString() : null,
@@ -139,12 +142,9 @@ export async function getSessions(
     })),
   }));
 
-  sessions.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
-  const start = (page - 1) * limit;
-
   return {
-    sessions: sessions.slice(start, start + limit),
-    total: sessions.length,
+    sessions,
+    total: storedSessions.length,
   };
 }
 
@@ -167,13 +167,11 @@ export async function getCalendarData(): Promise<{ date: string; completed: bool
 }
 
 export async function getOverviewStats(): Promise<OverviewStats> {
-  const [
-    { timeTracking },
-    { sessionHistory },
-  ] = await Promise.all([
-    chrome.storage.local.get('timeTracking') as Promise<{ timeTracking?: StoredTimeTracking }>,
-    chrome.storage.local.get('sessionHistory') as Promise<{ sessionHistory?: StoredSessionHistory }>,
-  ]);
+  const result = await chrome.storage.local.get(['timeTracking', 'sessionHistory']) as {
+    timeTracking?: StoredTimeTracking;
+    sessionHistory?: StoredSessionHistory;
+  };
+  const { timeTracking, sessionHistory } = result;
 
   const today = todayStr();
   const todayData = timeTracking?.daily?.[today] || {};
