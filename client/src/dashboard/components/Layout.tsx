@@ -1,35 +1,35 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 const navItems = [
-  { to: '/', label: 'Overview', icon: '\u25C8' },
-  { to: '/time-tracking', label: 'Time Tracking', icon: '\u29D7' },
-  { to: '/achievements', label: 'Achievements', icon: '\u2726' },
-  { to: '/sessions', label: 'Sessions', icon: '\u25CE' },
-  { to: '/settings', label: 'Settings', icon: '\u2699' },
+  { to: "/", label: "Overview", icon: "\u25C8" },
+  { to: "/time-tracking", label: "Time Tracking", icon: "\u29D7" },
+  { to: "/achievements", label: "Achievements", icon: "\u2726" },
+  { to: "/sessions", label: "Sessions", icon: "\u25CE" },
+  { to: "/settings", label: "Settings", icon: "\u2699" },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
-  '/': 'Overview',
-  '/time-tracking': 'Time Tracking',
-  '/sessions': 'Sessions',
-  '/achievements': 'Achievements',
-  '/settings': 'Settings',
+  "/": "Overview",
+  "/time-tracking": "Time Tracking",
+  "/sessions": "Sessions",
+  "/achievements": "Achievements",
+  "/settings": "Settings",
 };
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const pageTitle = PAGE_TITLES[location.pathname] || 'Dashboard';
+  const pageTitle = PAGE_TITLES[location.pathname] || "Dashboard";
 
   return (
     <div className="flex h-full relative z-1">
       <aside
-        className={`w-[var(--sidebar-width)] bg-bg-elevated border-r border-border-subtle flex flex-col shrink-0 relative z-10 sidebar-glow max-md:fixed max-md:left-0 max-md:inset-y-0 max-md:z-100 max-md:transition-transform max-md:duration-250 max-md:ease-[cubic-bezier(0.4,0,0.2,1)] ${sidebarOpen ? 'max-md:sidebar-mobile-open' : 'max-md:sidebar-mobile-closed max-md:shadow-none'}`}
+        className={`w-[var(--sidebar-width)] bg-bg-elevated border-r border-border-subtle flex flex-col shrink-0 relative z-10 sidebar-glow max-md:fixed max-md:left-0 max-md:inset-y-0 max-md:z-100 max-md:transition-transform max-md:duration-250 max-md:ease-[cubic-bezier(0.4,0,0.2,1)] ${sidebarOpen ? "max-md:sidebar-mobile-open" : "max-md:sidebar-mobile-closed max-md:shadow-none"}`}
       >
         <div className="px-6 pt-7 pb-6 border-b border-border-subtle">
           <h1 className="font-display text-2xl font-semibold text-text-heading tracking-tight">
-            Focus <span className="text-accent-ember">Guard</span>
+            Un<span className="text-accent-ember">drift</span>
           </h1>
         </div>
         <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
@@ -37,17 +37,19 @@ export default function Layout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.to === "/"}
               className={({ isActive }) =>
                 `flex items-center gap-3.5 py-2.5 px-4 text-[13.5px] tracking-wide rounded-sm relative transition-all duration-200 no-underline ${
                   isActive
-                    ? 'text-accent-ember bg-accent-ember-glow font-medium nav-active-bar'
-                    : 'text-text-secondary font-normal hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary'
+                    ? "text-accent-ember bg-accent-ember-glow font-medium nav-active-bar"
+                    : "text-text-secondary font-normal hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
                 }`
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <span className={`text-lg w-5.5 text-center shrink-0`}>{item.icon}</span>
+              <span className={`text-lg w-5.5 text-center shrink-0`}>
+                {item.icon}
+              </span>
               {item.label}
             </NavLink>
           ))}

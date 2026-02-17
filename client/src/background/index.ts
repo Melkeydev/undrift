@@ -336,7 +336,7 @@ async function sendNotification(
   try {
     chrome.notifications.create(id, {
       type: "basic",
-      iconUrl: "icons/icon128.png",
+      iconUrl: "icons/shield128.png",
       title,
       message,
       priority,

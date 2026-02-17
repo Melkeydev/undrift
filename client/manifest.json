@@ -4,6 +4,12 @@
   "version": "2.0.4",
   "description": "Quit distracting websites with blocking, interventions, time tracking, and streaks.",
 
+  "icons": {
+    "16": "icons/shield16.png",
+    "48": "icons/shield48.png",
+    "128": "icons/shield128.png"
+  },
+
   "permissions": [
     "storage",
     "declarativeNetRequest",
