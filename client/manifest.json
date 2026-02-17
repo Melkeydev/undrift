@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Undrift",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Quit distracting websites with blocking, interventions, time tracking, and streaks.",
 
   "icons": {

@@ -116,6 +116,22 @@ export default function Settings() {
           ))}
         </div>
       </div>
+
+      <div className="mb-10">
+        <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-text-secondary mb-4">
+          Legal
+        </h3>
+        <div className="bg-bg-card border border-border-card rounded-md p-6 backdrop-blur-[8px] shadow-card transition-[border-color,box-shadow] duration-300 hover:border-[rgba(255,255,255,0.1)]">
+          <a
+            href="https://pouncing-debt-56d.notion.site/Privacy-Policy-30a0a25f4a63805186a5c0bcb4f12b33"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-accent-ember hover:underline"
+          >
+            Privacy Policy
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
