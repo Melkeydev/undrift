@@ -1,5 +1,9 @@
 > 🚧 **This project is still in development. Undrift is not yet available for download or install.**
 
+
+https://github.com/user-attachments/assets/0eaf6ad5-276d-42dd-a2a2-e26203b44e79
+
+
 # 🛡️ Undrift
 
 A Chrome extension that helps you quit distracting websites — not by willpower alone, but by changing the moment you reach for them.
