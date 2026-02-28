@@ -75,6 +75,8 @@ export function Popup() {
   const [encouragement] = useState(
     () => ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
   );
+  const [customHours, setCustomHours] = useState(0);
+  const [customMinutes, setCustomMinutes] = useState(30);
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: "GET_POPUP_STATE" }, (response) => {
@@ -90,6 +92,10 @@ export function Popup() {
         }
       }
       setLoading(false);
+    });
+    chrome.storage.local.get(["customDurationHours", "customDurationMinutes"], (result) => {
+      if (result.customDurationHours !== undefined) setCustomHours(result.customDurationHours);
+      if (result.customDurationMinutes !== undefined) setCustomMinutes(result.customDurationMinutes);
     });
   }, []);
 
@@ -148,6 +154,13 @@ export function Popup() {
         setSession(response);
       });
     });
+  };
+
+  const handleCustomStart = () => {
+    const totalMinutes = customHours * 60 + customMinutes;
+    if (totalMinutes <= 0) return;
+    chrome.storage.local.set({ customDurationHours: customHours, customDurationMinutes: customMinutes });
+    handleStart(totalMinutes);
   };
 
   const handleEndClick = () => {
@@ -314,6 +327,41 @@ export function Popup() {
               {d.label}
             </button>
           ))}
+        </div>
+        <div className="custom-duration">
+          <div className="custom-duration-inputs">
+            <div className="duration-field">
+              <input
+                type="number"
+                className="duration-number-input"
+                min={0}
+                max={23}
+                value={customHours}
+                onChange={(e) => setCustomHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
+                disabled={!hasSites}
+              />
+              <span className="duration-unit">hr</span>
+            </div>
+            <div className="duration-field">
+              <input
+                type="number"
+                className="duration-number-input"
+                min={0}
+                max={59}
+                value={customMinutes}
+                onChange={(e) => setCustomMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                disabled={!hasSites}
+              />
+              <span className="duration-unit">min</span>
+            </div>
+            <button
+              className="btn-custom-start"
+              disabled={!hasSites || (customHours * 60 + customMinutes) <= 0}
+              onClick={handleCustomStart}
+            >
+              Start
+            </button>
+          </div>
         </div>
         {!hasSites && (
           <div className="hint">Select at least one site to start</div>
