@@ -30,7 +30,8 @@ Undrift applies the same thinking to internet distractions. When you hit a block
 
 ## 🛠️ Tech stack
 
-- **Extension:** React 18, TypeScript, Vite, CRXJS (Chrome MV3)
+- **Extension:** React 18, TypeScript, Vite, CRXJS (Manifest V3)
+- **Browser Support:** Chrome 88+, Firefox 109+
 - **Styling:** Tailwind CSS v4
 - **Charts:** Recharts
 
@@ -45,8 +46,11 @@ cd undrift/client
 
 # Install dependencies
 npm install
+```
 
-# Build the extension
+### Building for Chrome
+
+```bash
 npm run build
 ```
 
@@ -57,10 +61,27 @@ Then load it into Chrome:
 3. Click **Load unpacked**
 4. Select the `client/dist` folder
 
+### Building for Firefox
+
+```bash
+npm run build:firefox
+```
+
+Then load it into Firefox:
+
+1. Open `about:debugging`
+2. Click **This Firefox** in the sidebar
+3. Click **Load Temporary Add-on...**
+4. Navigate to `client/dist/` and select `manifest.json`
+
 For development with hot reload:
 
 ```bash
+# Chrome
 npm run dev
+
+# Firefox
+npm run dev:firefox
 ```
 
 Then load the `client/dist` folder the same way. Vite + CRXJS will handle hot module replacement.
