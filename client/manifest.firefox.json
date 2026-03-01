@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Undrift",
+  "version": "2.0.5",
+  "description": "Quit distracting websites with blocking, interventions, time tracking, and streaks.",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "undrift@extension.dev",
+      "strict_min_version": "109.0"
+    }
+  },
+
+  "icons": {
+    "16": "icons/shield16.png",
+    "48": "icons/shield48.png",
+    "128": "icons/shield128.png"
+  },
+
+  "permissions": [
+    "storage",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
+    "alarms",
+    "tabs",
+    "notifications",
+    "idle"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": ["src/background/index.ts"],
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "Undrift"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/blocked/index.html",
+        "src/dashboard/index.html"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
