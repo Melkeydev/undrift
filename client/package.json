@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:firefox": "TARGET_BROWSER=firefox vite",
     "build": "tsc && vite build",
+    "build:firefox": "tsc && TARGET_BROWSER=firefox vite build",
     "preview": "vite preview"
   },
   "dependencies": {

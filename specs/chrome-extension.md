@@ -4,6 +4,25 @@
 
 **Version:** Manifest V3
 
+### Browser Support
+
+| Browser | Support | Min Version |
+|---------|---------|-------------|
+| Chrome | ✅ | MV3 (Chrome 88+) |
+| Firefox | ✅ | 109.0+ |
+
+### Building for Firefox
+
+```bash
+cd client
+npm run build:firefox
+```
+
+The Firefox build outputs to `client/dist/` and uses `manifest.v3.json` which includes:
+- `browser_specific_settings.gecko` for Firefox identification
+- `declarativeNetRequestWithHostAccess` permission (required for redirects)
+- `background.scripts` instead of `background.service_worker`
+
 ### Permissions
 
 | Permission | Why It's Needed |
@@ -242,3 +261,35 @@ Hardcoded in `Popup.tsx`:
 4. **No options page:** Should add for notification/tracking preferences
 5. **No icon defined:** Manifest needs extension icons
 6. **Storage quota:** `chrome.storage.local` has a 10MB limit — time tracking data should be pruned (keep last 90 days locally, older data lives on server only)
+
+---
+
+## Firefox-Specific Notes
+
+### Key Differences from Chrome
+
+| Feature | Chrome | Firefox |
+|---------|--------|---------|
+| Background | Service worker | Background script (persistent) |
+| Enum types | `chrome.declarativeNetRequest.RuleActionType.REDIRECT` | Use string literals: `"redirect"` |
+| Manifest | `manifest.json` | `manifest.v3.json` with `browser_specific_settings.gecko` |
+| Post-build | None required | None required (Firefox ignores `use_dynamic_url` - harmless warning only) |
+
+### Firefox Build Process
+
+```bash
+npm run build:firefox
+```
+
+This runs:
+1. `tsc` - TypeScript compilation
+2. `vite build` - Vite production build (manifest automatically adapted for Firefox)
+
+### Submitting to Mozilla Add-ons (AMO)
+
+To submit to Firefox Add-ons:
+1. Build with `npm run build:firefox`
+2. Create a `.zip` of the `dist` folder
+3. Submit at https://addons.mozilla.org/developers/
+
+Note: Firefox requires `declarativeNetRequestWithHostAccess` permission for redirects that preserve access to the original URL.

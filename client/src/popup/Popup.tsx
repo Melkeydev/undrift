@@ -140,14 +140,17 @@ export function Popup() {
     return [...presetDomains, ...customSites];
   };
 
-  const handleStart = (minutes: number) => {
+  const handleStart = async (minutes: number) => {
     const sites = getBlockedDomains();
     if (sites.length === 0) return;
-    chrome.runtime.sendMessage({ type: "START_SESSION", durationMinutes: minutes, sites }, () => {
-      chrome.runtime.sendMessage({ type: "GET_SESSION" }, (response) => {
-        setSession(response);
-      });
-    });
+    
+    try {
+      await chrome.runtime.sendMessage({ type: "START_SESSION", durationMinutes: minutes, sites });
+      const response = await chrome.runtime.sendMessage({ type: "GET_SESSION" });
+      setSession(response);
+    } catch (err) {
+      console.error("Failed to start session:", err);
+    }
   };
 
   const handleEndClick = () => {

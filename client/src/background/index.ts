@@ -212,16 +212,14 @@ async function enableBlocking(sites: string[]): Promise<void> {
       id: ruleId++,
       priority: 1,
       action: {
-        type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
+        type: "redirect" as chrome.declarativeNetRequest.RuleActionType,
         redirect: {
           regexSubstitution: `${blockedPageUrl}?returnUrl=\\0`,
         },
       },
       condition: {
         regexFilter: `^https?://(www\\.)?${site.replace(".", "\\.")}/.*`,
-        resourceTypes: [
-          chrome.declarativeNetRequest.ResourceType.MAIN_FRAME,
-        ],
+        resourceTypes: ["main_frame" as chrome.declarativeNetRequest.ResourceType],
       },
     });
   }
